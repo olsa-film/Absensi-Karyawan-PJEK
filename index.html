@@ -20,16 +20,25 @@
         .content { padding: 25px 20px; flex: 1; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #f0f0f0; }
         
-        label { display: block; margin-bottom: 10px; font-weight: 600; color: #555; }
-        select { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; background: #f9f9f9; font-size: 1rem; outline: none; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
         
+        /* Style Input Nama & Select */
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 2px solid #eee; 
+            background: #f9f9f9; 
+            font-size: 1rem; 
+            outline: none; 
+            margin-bottom: 15px;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); background: #fff; }
+
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
         
-        /* Video di-mirror agar enak ngaca */
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        
-        /* Hasil Foto TIDAK di-mirror lagi (karena datanya sudah kita balik di sistem) */
-        img { width: 100%; height: 100%; object-fit: cover; }
+        /* NO MIRROR: Tampilan Normal (Tulisan terbaca) */
+        video, canvas, img { width: 100%; height: 100%; object-fit: cover; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; }
@@ -58,12 +67,15 @@
 
         <div class="content">
             <div class="card">
+                <label>Nama Lengkap</label>
+                <input type="text" id="nama" placeholder="Ketik nama Anda...">
+
                 <label>Divisi Kerja</label>
                 <select id="divisi" onchange="updateJadwal()">
                     <option value="admin">Divisi Admin</option>
                     <option value="digiplain">Divisi Digiplain</option>
                 </select>
-                <div style="margin-top: 10px; font-size: 0.85rem; color: #888; text-align: center;">
+                <div style="margin-top: 5px; font-size: 0.85rem; color: #888; text-align: center;">
                     Jadwal Masuk: <b id="info-jadwal">09:00</b>
                 </div>
             </div>
@@ -91,33 +103,26 @@
 
     <script>
         // ==========================================
-        // SCRIPT URL ANDA:
+        // URL SCRIPT BARU SUDAH DIPASANG:
         // ==========================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDSf4JnVzqlVA182nwFDE0YI6E-_NZH2OKwUJh6K8xGsP4nWaXIJ6lM65zeFSF_Aw0pw/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfLW9LewSRssZ9cts1oez4hntA7c6MUbVpE0mHmSPu7cTSDNpVEdAiKFD1sSD5bb1C9w/exec';
 
         
-        // 1. JAM & TANGGAL (DENGAN DETIK)
+        // 1. JAM DIGITAL
         setInterval(() => {
             const now = new Date();
-            // Menampilkan Jam:Menit:Detik
-            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {
-                hour: '2-digit', 
-                minute:'2-digit', 
-                second: '2-digit', 
-                hour12: false
-            });
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: false });
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
         // 2. LOGIKA JADWAL
         const schedules = { admin: "09:00", digiplain: "09:00" };
-        
         function updateJadwal() {
             const div = document.getElementById('divisi').value;
             document.getElementById('info-jadwal').innerText = schedules[div];
         }
 
-        // 3. KAMERA (MIRROR)
+        // 3. KAMERA (NORMAL / TIDAK MIRROR)
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('photo-preview');
@@ -135,17 +140,12 @@
             canvas.height = 300 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
             
-            // LOGIKA MIRROR: Kita balik datanya disini
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            
+            // GAMBAR NORMAL (Tanpa Mirror)
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             photoData = canvas.toDataURL('image/jpeg', 0.6);
             
             preview.src = photoData;
-            
-            video.style.display = 'none'; 
-            preview.style.display = 'block';
+            video.style.display = 'none'; preview.style.display = 'block';
             document.getElementById('shutter-btn').style.display = 'none';
             document.getElementById('retake-btn').style.display = 'block';
         }
@@ -158,10 +158,13 @@
         }
         window.addEventListener('load', initCamera);
 
-        // 4. KIRIM DATA
+        // 4. KIRIM DATA (DENGAN NAMA)
         function kirimAbsen(tipe) {
+            const nama = document.getElementById('nama').value;
+
+            // Validasi
+            if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
-            if (SCRIPT_URL.includes("PASTE_URL")) { alert("URL Script Belum Diganti!"); return; }
 
             const divisi = document.getElementById('divisi').value;
             let statusFinal = tipe;
@@ -179,9 +182,15 @@
 
             showNotif("Sedang mengirim...", "#34495e");
 
+            // Kirim Data
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ divisi: divisi, status: statusFinal, foto: photoData })
+                body: JSON.stringify({ 
+                    nama: nama, 
+                    divisi: divisi, 
+                    status: statusFinal, 
+                    foto: photoData 
+                })
             })
             .then(res => {
                 showNotif("Berhasil: " + statusFinal, "#2ecc71");
