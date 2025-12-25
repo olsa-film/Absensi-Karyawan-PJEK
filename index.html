@@ -3,61 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>E-Presensi Pintar</title>
+    <title>Absensi Karyawan</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- CSS STYLE (Tampilan) --- */
-        :root { --primary: #4a90e2; --bg: #f0f2f5; --text: #2d3436; }
+        :root { --primary: #4a90e2; --bg: #eef2f5; --text: #2d3436; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+        
         .app-container { width: 100%; max-width: 450px; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         
-        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; text-align: center; }
-        .clock { font-size: 2.2rem; font-weight: 600; margin: 10px 0 5px; }
-        .date { font-size: 0.9rem; opacity: 0.9; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; }
+        .clock { font-size: 2.5rem; font-weight: 600; margin: 5px 0; }
         
         .content { padding: 25px 20px; flex: 1; }
-        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #eee; background: #f9f9f9; font-size: 1rem; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #f0f0f0; }
         
-        .camera-box { position: relative; width: 100%; background: black; border-radius: 15px; overflow: hidden; height: 350px; }
-        video, canvas, img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); /* Mirror */ }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #555; }
+        select { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; background: #f9f9f9; font-size: 1rem; outline: none; }
         
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; }
+        .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
+        /* EFEK MIRROR (CERMIN) */
+        video, canvas, img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
         .btn-in { background: #00b894; }
         .btn-out { background: #d63031; }
         
-        .btn-cam { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1) !important; width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .btn-cam-inner { width: 45px; height: 45px; background: white; border-radius: 50%; }
-        #retake-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1) !important; background: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: none; z-index: 10; }
+        .shutter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1); width: 65px; height: 65px; background: rgba(255,255,255,0.3); border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+        .shutter-inner { width: 50px; height: 50px; background: white; border-radius: 50%; }
         
-        #notification { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 50px; z-index: 1000; transition: top 0.4s; text-align: center; width: 90%; }
-    </script>
+        #retake-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1); background: white; color: #333; padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; display: none; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        #notification { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 15px 30px; border-radius: 50px; z-index: 999; transition: top 0.4s; font-size: 0.9rem; width: 85%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    </style>
 </head>
 <body>
 
-    <div id="notification">Pesan Notifikasi</div>
+    <div id="notification">Notifikasi</div>
 
     <div class="app-container">
         <header>
-            <div style="font-weight: bold;"><i class="fas fa-fingerprint"></i> E-PRESENSI</div>
+            <div style="font-size: 1rem; opacity: 0.9;"><i class="fas fa-fingerprint"></i> E-PRESENSI</div>
             <div class="clock" id="clock">00:00</div>
-            <div class="date" id="date">...</div>
+            <div id="date" style="font-size: 0.9rem;">...</div>
         </header>
 
         <div class="content">
             <div class="card">
-                <label>Divisi Anda</label>
-                <select id="divisi" onchange="updateInfoJadwal()">
+                <label>Divisi Kerja</label>
+                <select id="divisi" onchange="updateJadwal()">
                     <option value="admin">Divisi Admin</option>
                     <option value="digiplain">Divisi Digiplain</option>
                 </select>
-                <div style="margin-top:10px; font-size:0.8rem; color:#666; text-align:center;">
-                    Jadwal Masuk: <b id="info-jam">09:00</b>
+                <div style="margin-top: 10px; font-size: 0.85rem; color: #888; text-align: center;">
+                    Jadwal Masuk: <b id="info-jadwal">09:00</b>
                 </div>
             </div>
 
@@ -67,122 +70,120 @@
                     <canvas id="canvas" style="display:none;"></canvas>
                     <img id="photo-preview" style="display:none;">
                     
-                    <div class="btn-cam" onclick="takePhoto()" id="shutter-btn"><div class="btn-cam-inner"></div></div>
+                    <div class="shutter" onclick="takePhoto()" id="shutter-btn">
+                        <div class="shutter-inner"></div>
+                    </div>
                     <div id="retake-btn" onclick="resetCamera()">FOTO ULANG</div>
                 </div>
-                <p style="text-align: center; font-size: 0.8rem; margin-top: 10px; color: #888;">Pastikan wajah terlihat jelas</p>
+                <p style="text-align: center; font-size: 0.8rem; color: #aaa;">Pastikan wajah terlihat jelas</p>
             </div>
 
             <div class="btn-grid">
-                <button class="btn btn-in" onclick="submitAttendance('Masuk')">Absen Masuk</button>
-                <button class="btn btn-out" onclick="submitAttendance('Pulang')">Absen Pulang</button>
+                <button class="btn btn-in" onclick="kirimAbsen('Masuk')">Absen Masuk</button>
+                <button class="btn btn-out" onclick="kirimAbsen('Pulang')">Absen Pulang</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIG URL (JANGAN LUPA GANTI INI!) ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznjTKUVA2MCffl2gVLC4oqsezQnFEOGkKOiu71-A9EFOL-YTukfTiqHkn9Frnymy3IbQ/exec';
+        // ==========================================
+        // URL SCRIPT ANDA SUDAH TERPASANG DI SINI:
+        // ==========================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDSf4JnVzqlVA182nwFDE0YI6E-_NZH2OKwUJh6K8xGsP4nWaXIJ6lM65zeFSF_Aw0pw/exec';
 
-        // --- 2. LOGIKA JADWAL & KETERANGAN ---
-        const schedules = {
-            admin: { in: "09:00" },     // Jam 9 Pagi
-            digiplain: { in: "09:00" }  // Jam 9 Pagi
-        };
-
-        function updateInfoJadwal() {
-            const divisi = document.getElementById('divisi').value;
-            document.getElementById('info-jam').innerText = schedules[divisi].in;
-        }
-
-        // Fungsi Cek Keterangan (PINTAR)
-        function getKeterangan(divisi, type) {
-            if (type === 'Pulang') return ''; // Kalau pulang tidak dicek telat
-
-            const now = new Date();
-            const jamSekarang = now.getHours();
-            const menitSekarang = now.getMinutes();
-
-            // Ambil jadwal divisi (misal "09:00")
-            const jadwal = schedules[divisi].in; 
-            const [jamJadwal, menitJadwal] = jadwal.split(':').map(Number);
-
-            // Rumus Matematika Perbandingan Waktu
-            if (jamSekarang > jamJadwal || (jamSekarang === jamJadwal && menitSekarang > menitJadwal)) {
-                return " (Terlambat)";
-            } else {
-                return " (Tepat Waktu)";
-            }
-        }
-
-        // --- 3. JAM DIGITAL ---
+        
+        // 1. JAM & TANGGAL
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
-        // --- 4. KAMERA (MIRROR) ---
+        // 2. LOGIKA JADWAL
+        const schedules = { admin: "09:00", digiplain: "09:00" };
+        
+        function updateJadwal() {
+            const div = document.getElementById('divisi').value;
+            document.getElementById('info-jadwal').innerText = schedules[div];
+        }
+
+        // 3. KAMERA (MIRROR)
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('photo-preview');
-        const shutter = document.getElementById('shutter-btn');
-        const retake = document.getElementById('retake-btn');
         let photoData = "";
 
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
-            } catch (e) { alert("Gagal akses kamera: " + e.message); }
+            } catch(e) { alert("Gagal akses kamera!"); }
         }
-
+        
         function takePhoto() {
-            canvas.width = 300;
+            canvas.width = 300; // Resolusi kecil biar ringan
             canvas.height = 300 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
+            
+            // Logic Cermin
             ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1); // Mirror
+            ctx.scale(-1, 1);
+            
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            photoData = canvas.toDataURL('image/jpeg', 0.5);
+            photoData = canvas.toDataURL('image/jpeg', 0.6);
+            
             preview.src = photoData;
-            video.style.display = 'none'; preview.style.display = 'block'; shutter.style.display = 'none'; retake.style.display = 'block';
+            video.style.display = 'none'; preview.style.display = 'block';
+            document.getElementById('shutter-btn').style.display = 'none';
+            document.getElementById('retake-btn').style.display = 'block';
         }
 
         function resetCamera() {
-            video.style.display = 'block'; preview.style.display = 'none'; shutter.style.display = 'flex'; retake.style.display = 'none'; photoData = "";
+            video.style.display = 'block'; preview.style.display = 'none';
+            document.getElementById('shutter-btn').style.display = 'flex';
+            document.getElementById('retake-btn').style.display = 'none';
+            photoData = "";
         }
         window.addEventListener('load', initCamera);
 
-        // --- 5. KIRIM DATA ---
-        function submitAttendance(type) {
-            if (!photoData) { showNotif("Foto dulu dong!", "red"); return; }
-            if (SCRIPT_URL.includes("PASTE_URL")) { alert("URL Script belum diganti!"); return; }
+        // 4. KIRIM DATA
+        function kirimAbsen(tipe) {
+            if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
+            if (SCRIPT_URL.includes("PASTE_URL")) { alert("URL Script Belum Diganti!"); return; }
 
             const divisi = document.getElementById('divisi').value;
-            
-            // Hitung status otomatis (Masuk + Keterangan)
-            const keterangan = getKeterangan(divisi, type);
-            const statusFinal = type + keterangan; // Hasil: "Masuk (Terlambat)"
+            let statusFinal = tipe;
 
-            showNotif("Sedang mengirim...", "#333");
+            // Logika Terlambat
+            if (tipe === 'Masuk') {
+                const now = new Date();
+                const [jamJadwal, menitJadwal] = schedules[divisi].split(':');
+                if (now.getHours() > jamJadwal || (now.getHours() == jamJadwal && now.getMinutes() > menitJadwal)) {
+                    statusFinal += " (Terlambat)";
+                } else {
+                    statusFinal += " (Tepat Waktu)";
+                }
+            }
 
-            // Kirim statusFinal ke Google Sheet
+            showNotif("Sedang mengirim...", "#34495e");
+
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ divisi: divisi, status: statusFinal, foto: photoData })
             })
             .then(res => {
-                showNotif("Sukses: " + statusFinal, "green");
+                showNotif("Berhasil: " + statusFinal, "#2ecc71");
                 setTimeout(resetCamera, 2000);
             })
-            .catch(err => { showNotif("Gagal Kirim.", "red"); });
+            .catch(err => {
+                showNotif("Gagal mengirim!", "#e74c3c");
+            });
         }
 
         function showNotif(msg, color) {
             const n = document.getElementById('notification');
-            n.innerText = msg; n.style.background = color; n.style.top = "20px";
-            setTimeout(() => n.style.top = "-100px", 3000);
+            n.innerText = msg; n.style.background = color; n.style.top = "30px";
+            setTimeout(() => n.style.top = "-100px", 4000);
         }
     </script>
 </body>
