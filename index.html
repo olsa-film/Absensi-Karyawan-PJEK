@@ -22,7 +22,6 @@
         
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
         
-        /* Style Input Nama & Select */
         input[type="text"], select { 
             width: 100%; 
             padding: 15px; 
@@ -37,7 +36,7 @@
 
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
         
-        /* NO MIRROR: Tampilan Normal (Tulisan terbaca) */
+        /* NO MIRROR */
         video, canvas, img { width: 100%; height: 100%; object-fit: cover; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -102,27 +101,20 @@
     </div>
 
     <script>
-        // ==========================================
-        // URL SCRIPT BARU SUDAH DIPASANG:
-        // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfLW9LewSRssZ9cts1oez4hntA7c6MUbVpE0mHmSPu7cTSDNpVEdAiKFD1sSD5bb1C9w/exec';
 
-        
-        // 1. JAM DIGITAL
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: false });
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
-        // 2. LOGIKA JADWAL
         const schedules = { admin: "09:00", digiplain: "09:00" };
         function updateJadwal() {
             const div = document.getElementById('divisi').value;
             document.getElementById('info-jadwal').innerText = schedules[div];
         }
 
-        // 3. KAMERA (NORMAL / TIDAK MIRROR)
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('photo-preview');
@@ -136,13 +128,15 @@
         }
         
         function takePhoto() {
-            canvas.width = 300; 
-            canvas.height = 300 * (video.videoHeight / video.videoWidth);
+            // Resolusi 200px (Sangat Ringan)
+            canvas.width = 200; 
+            canvas.height = 200 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
             
-            // GAMBAR NORMAL (Tanpa Mirror)
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            photoData = canvas.toDataURL('image/jpeg', 0.6);
+            
+            // Kompresi 0.4
+            photoData = canvas.toDataURL('image/jpeg', 0.4);
             
             preview.src = photoData;
             video.style.display = 'none'; preview.style.display = 'block';
@@ -158,18 +152,15 @@
         }
         window.addEventListener('load', initCamera);
 
-        // 4. KIRIM DATA (DENGAN NAMA)
         function kirimAbsen(tipe) {
             const nama = document.getElementById('nama').value;
 
-            // Validasi
             if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
 
             const divisi = document.getElementById('divisi').value;
             let statusFinal = tipe;
 
-            // Logika Terlambat
             if (tipe === 'Masuk') {
                 const now = new Date();
                 const [jamJadwal, menitJadwal] = schedules[divisi].split(':');
@@ -180,9 +171,14 @@
                 }
             }
 
-            showNotif("Sedang mengirim...", "#34495e");
+            // --- PERUBAHAN DI SINI: INSTANT FEEDBACK ---
+            // 1. Tampilkan Sukses DULUAN (Supaya user senang & cepat)
+            showNotif("Berhasil: " + statusFinal, "#2ecc71");
+            
+            // 2. Reset kamera setelah 1.5 detik (supaya user sempat baca notif)
+            setTimeout(resetCamera, 1500);
 
-            // Kirim Data
+            // 3. Baru kirim data di belakang layar (User tidak perlu menunggu ini selesai)
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
@@ -193,11 +189,11 @@
                 })
             })
             .then(res => {
-                showNotif("Berhasil: " + statusFinal, "#2ecc71");
-                setTimeout(resetCamera, 2000);
+                console.log("Data terkirim ke server"); // Diam-diam saja
             })
             .catch(err => {
-                showNotif("Gagal mengirim!", "#e74c3c");
+                // Kalau gagal, baru kasih tau belakangan (jarang terjadi)
+                showNotif("Gagal koneksi internet!", "#e74c3c");
             });
         }
 
