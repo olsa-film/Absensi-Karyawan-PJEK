@@ -2,332 +2,401 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Presensi Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E-Presensi Modern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary: #4a90e2;
-            --secondary: #f5f6fa;
-            --text: #2c3e50;
-            --success: #2ecc71;
-            --danger: #e74c3c;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --surface: rgba(255, 255, 255, 0.9);
+            --glass: rgba(255, 255, 255, 0.7);
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --success: #00b894;
+            --danger: #d63031;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background-color: #eef2f5;
-            color: var(--text);
+            background: #f0f2f5;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-dark);
             display: flex;
             justify-content: center;
             min-height: 100vh;
         }
 
-        /* Mobile Container */
+        /* Mobile Layout */
         .app-container {
             width: 100%;
-            max-width: 420px;
-            background: white;
+            max-width: 450px;
+            background: var(--surface);
             min-height: 100vh;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
         }
 
-        /* Header */
+        /* Header Modern */
         header {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            text-align: center;
-        }
-
-        h1 { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
-        .clock { font-size: 2rem; font-weight: bold; letter-spacing: 2px; }
-        .date { font-size: 0.9rem; opacity: 0.9; }
-
-        /* Content */
-        .content { padding: 20px; flex: 1; overflow-y: auto; }
-
-        /* Form Group */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
-        
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #ddd;
-            font-size: 1rem;
-            background: white;
-            outline: none;
-            transition: 0.3s;
-        }
-        select:focus { border-color: var(--primary); }
-
-        /* Schedule Card */
-        .schedule-card {
-            background: var(--secondary);
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--primary);
-        }
-        .time-box { text-align: center; }
-        .time-box span { display: block; font-size: 0.8rem; color: #7f8c8d; }
-        .time-box strong { font-size: 1.1rem; color: var(--text); }
-
-        /* Camera Section */
-        .camera-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        video, canvas, img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #photo-preview { display: none; }
-        
-        .camera-btn {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: var(--surface);
+            padding: 25px 20px 15px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             z-index: 10;
         }
-        .camera-icon { width: 24px; height: 24px; background: red; border-radius: 50%; border: 2px solid white; }
 
-        /* Action Buttons */
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 10px;
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .brand { font-weight: 600; font-size: 1.1rem; color: #764ba2; display: flex; align-items: center; gap: 8px; }
+        
+        .clock-wrapper { text-align: center; margin-top: 10px; }
+        .clock { font-size: 2.5rem; font-weight: 600; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+        .date { font-size: 0.9rem; color: var(--text-light); font-weight: 500; margin-top: -5px; }
+
+        /* Content Area */
+        .content { padding: 25px 20px; flex: 1; overflow-y: auto; padding-bottom: 40px; }
+
+        /* Animated Cards */
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            animation: slideUp 0.5s ease-out;
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
+        /* Dropdown Custom */
+        .select-wrapper { position: relative; }
+        .select-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #764ba2; }
+        select {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: 15px;
+            border: 2px solid #eef1f5;
+            font-size: 1rem;
+            background: #f8f9fa;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        select:focus { border-color: #764ba2; background: white; }
+
+        /* Schedule Layout */
+        .schedule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .time-item { text-align: center; padding: 10px; background: #f8f9fa; border-radius: 15px; }
+        .time-item span { display: block; font-size: 0.75rem; color: var(--text-light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .time-item strong { font-size: 1.2rem; color: var(--text-dark); }
+
+        /* Camera UI */
+        .camera-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background: #000;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        video, img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); /* Mirror effect */ }
+
+        /* Camera Overlay UI */
+        .cam-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .cam-focus { width: 100%; height: 100%; border: 2px dashed rgba(255,255,255,0.5); border-radius: 15px; }
+        
+        /* Shutter Button */
+        .shutter-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: 0.2s;
+            z-index: 20;
+        }
+        .shutter-inner { width: 50px; height: 50px; background: white; border-radius: 50%; transition: 0.2s; }
+        .shutter-btn:active .shutter-inner { transform: scale(0.85); background: #ff7675; }
+
+        /* Action Buttons */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .btn {
-            padding: 15px;
+            padding: 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 1rem;
             font-weight: 600;
             color: white;
             cursor: pointer;
-            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .btn:active { transform: scale(0.95); }
-        .btn-in { background-color: var(--success); }
-        .btn-out { background-color: var(--danger); }
+        .btn:active { transform: scale(0.97); }
+        .btn-in { background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); }
+        .btn-out { background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); opacity: 0.8; }
 
-        /* Notification */
+        /* Notification Toast */
         #notification {
             position: fixed;
-            top: -100px;
+            bottom: -100px; /* Hidden by default */
             left: 50%;
             transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: top 0.5s;
-            z-index: 1000;
-            font-size: 0.9rem;
             width: 90%;
-            max-width: 380px;
-            text-align: center;
+            max-width: 400px;
+            background: rgba(45, 52, 54, 0.95);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
         }
+        .notif-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+        
+        /* Animation Keyframes */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
     </style>
 </head>
 <body>
 
-    <div id="notification">Presensi Berhasil Disimpan!</div>
+    <div id="notification">
+        <div class="notif-icon" id="notif-icon-bg"><i class="fas fa-check"></i></div>
+        <div id="notif-msg">Presensi Berhasil!</div>
+    </div>
 
     <div class="app-container">
         <header>
-            <h1>Sistem Presensi</h1>
-            <div class="clock" id="clock">00:00:00</div>
-            <div class="date" id="date">Senin, 1 Januari 2024</div>
+            <div class="header-top">
+                <div class="brand"><i class="fas fa-fingerprint"></i> E-Presensi</div>
+                <div style="font-size: 0.8rem; background: rgba(118, 75, 162, 0.1); color: #764ba2; padding: 5px 12px; border-radius: 20px; font-weight: 600;">v2.0</div>
+            </div>
+            <div class="clock-wrapper">
+                <div class="clock" id="clock">00:00:00</div>
+                <div class="date" id="date">Memuat tanggal...</div>
+            </div>
         </header>
 
         <div class="content">
-            <div class="form-group">
-                <label for="divisi">Pilih Divisi Anda</label>
-                <select id="divisi" onchange="updateSchedule()">
-                    <option value="admin">Divisi Admin</option>
-                    <option value="digiplain">Divisi Digiplain</option>
-                </select>
+            <div class="card">
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:10px; font-weight:600; color:var(--text-light); font-size:0.9rem;">Divisi Kerja</label>
+                    <div class="select-wrapper">
+                        <i class="fas fa-briefcase"></i>
+                        <select id="divisi" onchange="updateSchedule()">
+                            <option value="admin">Divisi Admin</option>
+                            <option value="digiplain">Divisi Digiplain</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="schedule-grid" style="margin-top: 15px;">
+                    <div class="time-item">
+                        <span><i class="fas fa-sun"></i> Masuk</span>
+                        <strong id="time-in" style="color: #00b894">09:00</strong>
+                    </div>
+                    <div class="time-item">
+                        <span><i class="fas fa-moon"></i> Pulang</span>
+                        <strong id="time-out" style="color: #d63031">14:00</strong>
+                    </div>
+                </div>
             </div>
 
-            <div class="schedule-card">
-                <div class="time-box">
-                    <span>Jadwal Masuk</span>
-                    <strong id="time-in">09:00 WIB</strong>
+            <div class="card" style="padding: 10px;">
+                <div class="camera-wrapper">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    <img id="photo-preview" style="display:none;" alt="Preview Foto">
+                    
+                    <div class="cam-overlay" id="cam-overlay">
+                        <div class="cam-focus"></div>
+                    </div>
+
+                    <div class="shutter-btn" onclick="takePhoto()" id="shutter-btn">
+                        <div class="shutter-inner"></div>
+                    </div>
+                    
+                    <div id="retake-btn" onclick="resetCamera()" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:white; color:#2d3436; padding:10px 20px; border-radius:30px; font-size:0.9rem; font-weight:600; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:25;">
+                        <i class="fas fa-redo"></i> Foto Ulang
+                    </div>
                 </div>
-                <div class="time-box">
-                    <span>Jadwal Pulang</span>
-                    <strong id="time-out">14:00 WIB</strong>
-                </div>
+                <p style="text-align: center; font-size: 0.8rem; color: var(--text-light); margin-top: 10px;">
+                    Pastikan wajah terlihat jelas dalam kotak
+                </p>
             </div>
 
-            <label>Bukti Selfie Kehadiran</label>
-            <div class="camera-container">
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none;"></canvas>
-                <img id="photo-preview" alt="Preview Foto">
-                
-                <button class="camera-btn" onclick="takePhoto()">
-                    <div class="camera-icon"></div>
+            <div class="btn-grid">
+                <button class="btn btn-in" onclick="submitAttendance('Masuk')">
+                    <i class="fas fa-sign-in-alt"></i> Absen Masuk
                 </button>
-            </div>
-            <p style="text-align: center; font-size: 0.8rem; color: #7f8c8d; margin-bottom: 15px;">
-                Klik tombol bulat untuk mengambil foto.
-            </p>
-
-            <div class="action-buttons">
-                <button class="btn btn-in" onclick="submitAttendance('Masuk')">Absen Masuk</button>
-                <button class="btn btn-out" onclick="submitAttendance('Pulang')">Absen Pulang</button>
+                <button class="btn btn-out" onclick="submitAttendance('Pulang')">
+                    <i class="fas fa-sign-out-alt"></i> Absen Pulang
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. Logika Jam & Tanggal Realtime
+        // --- 1. System Clock ---
         function updateClock() {
             const now = new Date();
-            const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', optionsDate);
-            
-            // Format jam HH:MM:SS
-            const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('clock').innerText = timeString;
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false });
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 2. Logika Jadwal Divisi
+        // --- 2. Schedule Logic ---
         const schedules = {
-            admin: { in: "09:00 WIB", out: "14:00 WIB" },
-            digiplain: { in: "09:00 WIB", out: "15:00 WIB" }
+            admin: { in: "09:00", out: "14:00" },
+            digiplain: { in: "09:00", out: "15:00" }
         };
 
         function updateSchedule() {
             const divisi = document.getElementById('divisi').value;
-            const schedule = schedules[divisi];
-            
-            document.getElementById('time-in').innerText = schedule.in;
-            document.getElementById('time-out').innerText = schedule.out;
-
-            // Reset foto jika ganti divisi (opsional)
-            resetCamera();
+            document.getElementById('time-in').innerText = schedules[divisi].in;
+            document.getElementById('time-out').innerText = schedules[divisi].out;
+            resetCamera(); 
         }
 
-        // 3. Logika Kamera
+        // --- 3. Camera Logic ---
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const photoPreview = document.getElementById('photo-preview');
+        const shutterBtn = document.getElementById('shutter-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const camOverlay = document.getElementById('cam-overlay');
         let hasPhoto = false;
 
         async function initCamera() {
             try {
-                // Mengakses kamera depan
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user" } 
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } 
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Gagal mengakses kamera. Pastikan izin kamera aktif dan menggunakan HTTPS.");
-                console.error("Error camera:", err);
+                console.error("Camera Error:", err);
+                showNotification("Izin kamera ditolak!", "error");
             }
         }
 
         function takePhoto() {
             if (!video.srcObject) return;
+            
+            // Flash Effect
+            const wrapper = document.querySelector('.camera-wrapper');
+            wrapper.style.backgroundColor = "white";
+            setTimeout(() => wrapper.style.backgroundColor = "black", 100);
 
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Gambar frame video ke canvas
+            // Mirror image processing
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Konversi ke image
-            const dataUrl = canvas.toDataURL('image/png');
-            photoPreview.src = dataUrl;
+            photoPreview.src = canvas.toDataURL('image/png');
             
-            // Tampilkan preview, sembunyikan video
+            // UI Switch
             video.style.display = 'none';
+            camOverlay.style.display = 'none';
             photoPreview.style.display = 'block';
+            shutterBtn.style.display = 'none';
+            retakeBtn.style.display = 'flex';
+            
             hasPhoto = true;
         }
 
         function resetCamera() {
             video.style.display = 'block';
+            camOverlay.style.display = 'flex';
             photoPreview.style.display = 'none';
+            shutterBtn.style.display = 'flex';
+            retakeBtn.style.display = 'none';
             hasPhoto = false;
         }
 
-        // Jalankan kamera saat load
         window.addEventListener('load', initCamera);
 
-        // 4. Logika Submit Absen
+        // --- 4. Submit Logic & Notifications ---
         function submitAttendance(type) {
             const divisi = document.getElementById('divisi').value;
             const namaDivisi = divisi === 'admin' ? 'Admin' : 'Digiplain';
-            
-            // Validasi Foto
+
             if (!hasPhoto) {
-                showNotification("Harap ambil foto selfie terlebih dahulu!", "#e74c3c");
+                showNotification("Silakan ambil foto selfie dulu!", "error");
+                // Shake animation for camera card
+                const camCard = document.querySelectorAll('.card')[1];
+                camCard.style.transform = "translateX(5px)";
+                setTimeout(() => camCard.style.transform = "translateX(0)", 100);
+                setTimeout(() => camCard.style.transform = "translateX(-5px)", 200);
+                setTimeout(() => camCard.style.transform = "translateX(0)", 300);
                 return;
             }
 
-            // Simulasi Kirim Data
-            const timeNow = new Date().toLocaleTimeString('id-ID');
-            
-            // Tampilkan notifikasi sukses
-            showNotification(`Sukses: ${type} ${namaDivisi} pada ${timeNow}`, "#2ecc71");
-            
-            // Reset setelah beberapa detik
+            const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            showNotification(`Berhasil: Absen ${type} (${namaDivisi}) jam ${timeNow}`, "success");
+
+            // Reset after delay
             setTimeout(() => {
                 resetCamera();
             }, 3000);
         }
 
-        function showNotification(msg, color) {
+        function showNotification(msg, type) {
             const notif = document.getElementById('notification');
-            notif.innerText = msg;
-            notif.style.backgroundColor = color || "#333";
-            notif.style.top = "20px";
+            const notifIcon = document.getElementById('notif-icon-bg');
+            const notifMsg = document.getElementById('notif-msg');
+            
+            notifMsg.innerText = msg;
+            
+            if (type === "success") {
+                notifIcon.style.background = "#00b894";
+                notifIcon.innerHTML = '<i class="fas fa-check"></i>';
+            } else {
+                notifIcon.style.background = "#d63031";
+                notifIcon.innerHTML = '<i class="fas fa-exclamation"></i>';
+            }
+
+            notif.style.bottom = "30px";
             
             setTimeout(() => {
-                notif.style.top = "-100px";
-            }, 3000);
+                notif.style.bottom = "-100px";
+            }, 3500);
         }
     </script>
 </body>
