@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Presensi Mobile</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f5f6fa;
+            --text: #2c3e50;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body {
+            background-color: #eef2f5;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Mobile Container */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
+        .clock { font-size: 2rem; font-weight: bold; letter-spacing: 2px; }
+        .date { font-size: 0.9rem; opacity: 0.9; }
+
+        /* Content */
+        .content { padding: 20px; flex: 1; overflow-y: auto; }
+
+        /* Form Group */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+            background: white;
+            outline: none;
+            transition: 0.3s;
+        }
+        select:focus { border-color: var(--primary); }
+
+        /* Schedule Card */
+        .schedule-card {
+            background: var(--secondary);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary);
+        }
+        .time-box { text-align: center; }
+        .time-box span { display: block; font-size: 0.8rem; color: #7f8c8d; }
+        .time-box strong { font-size: 1.1rem; color: var(--text); }
+
+        /* Camera Section */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        video, canvas, img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #photo-preview { display: none; }
+        
+        .camera-btn {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .camera-icon { width: 24px; height: 24px; background: red; border-radius: 50%; border: 2px solid white; }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-in { background-color: var(--success); }
+        .btn-out { background-color: var(--danger); }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: top 0.5s;
+            z-index: 1000;
+            font-size: 0.9rem;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="notification">Presensi Berhasil Disimpan!</div>
+
+    <div class="app-container">
+        <header>
+            <h1>Sistem Presensi</h1>
+            <div class="clock" id="clock">00:00:00</div>
+            <div class="date" id="date">Senin, 1 Januari 2024</div>
+        </header>
+
+        <div class="content">
+            <div class="form-group">
+                <label for="divisi">Pilih Divisi Anda</label>
+                <select id="divisi" onchange="updateSchedule()">
+                    <option value="admin">Divisi Admin</option>
+                    <option value="digiplain">Divisi Digiplain</option>
+                </select>
+            </div>
+
+            <div class="schedule-card">
+                <div class="time-box">
+                    <span>Jadwal Masuk</span>
+                    <strong id="time-in">09:00 WIB</strong>
+                </div>
+                <div class="time-box">
+                    <span>Jadwal Pulang</span>
+                    <strong id="time-out">14:00 WIB</strong>
+                </div>
+            </div>
+
+            <label>Bukti Selfie Kehadiran</label>
+            <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display:none;"></canvas>
+                <img id="photo-preview" alt="Preview Foto">
+                
+                <button class="camera-btn" onclick="takePhoto()">
+                    <div class="camera-icon"></div>
+                </button>
+            </div>
+            <p style="text-align: center; font-size: 0.8rem; color: #7f8c8d; margin-bottom: 15px;">
+                Klik tombol bulat untuk mengambil foto.
+            </p>
+
+            <div class="action-buttons">
+                <button class="btn btn-in" onclick="submitAttendance('Masuk')">Absen Masuk</button>
+                <button class="btn btn-out" onclick="submitAttendance('Pulang')">Absen Pulang</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Logika Jam & Tanggal Realtime
+        function updateClock() {
+            const now = new Date();
+            const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date').innerText = now.toLocaleDateString('id-ID', optionsDate);
+            
+            // Format jam HH:MM:SS
+            const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById('clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Logika Jadwal Divisi
+        const schedules = {
+            admin: { in: "09:00 WIB", out: "14:00 WIB" },
+            digiplain: { in: "09:00 WIB", out: "15:00 WIB" }
+        };
+
+        function updateSchedule() {
+            const divisi = document.getElementById('divisi').value;
+            const schedule = schedules[divisi];
+            
+            document.getElementById('time-in').innerText = schedule.in;
+            document.getElementById('time-out').innerText = schedule.out;
+
+            // Reset foto jika ganti divisi (opsional)
+            resetCamera();
+        }
+
+        // 3. Logika Kamera
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const photoPreview = document.getElementById('photo-preview');
+        let hasPhoto = false;
+
+        async function initCamera() {
+            try {
+                // Mengakses kamera depan
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Gagal mengakses kamera. Pastikan izin kamera aktif dan menggunakan HTTPS.");
+                console.error("Error camera:", err);
+            }
+        }
+
+        function takePhoto() {
+            if (!video.srcObject) return;
+
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Gambar frame video ke canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Konversi ke image
+            const dataUrl = canvas.toDataURL('image/png');
+            photoPreview.src = dataUrl;
+            
+            // Tampilkan preview, sembunyikan video
+            video.style.display = 'none';
+            photoPreview.style.display = 'block';
+            hasPhoto = true;
+        }
+
+        function resetCamera() {
+            video.style.display = 'block';
+            photoPreview.style.display = 'none';
+            hasPhoto = false;
+        }
+
+        // Jalankan kamera saat load
+        window.addEventListener('load', initCamera);
+
+        // 4. Logika Submit Absen
+        function submitAttendance(type) {
+            const divisi = document.getElementById('divisi').value;
+            const namaDivisi = divisi === 'admin' ? 'Admin' : 'Digiplain';
+            
+            // Validasi Foto
+            if (!hasPhoto) {
+                showNotification("Harap ambil foto selfie terlebih dahulu!", "#e74c3c");
+                return;
+            }
+
+            // Simulasi Kirim Data
+            const timeNow = new Date().toLocaleTimeString('id-ID');
+            
+            // Tampilkan notifikasi sukses
+            showNotification(`Sukses: ${type} ${namaDivisi} pada ${timeNow}`, "#2ecc71");
+            
+            // Reset setelah beberapa detik
+            setTimeout(() => {
+                resetCamera();
+            }, 3000);
+        }
+
+        function showNotification(msg, color) {
+            const notif = document.getElementById('notification');
+            notif.innerText = msg;
+            notif.style.backgroundColor = color || "#333";
+            notif.style.top = "20px";
+            
+            setTimeout(() => {
+                notif.style.top = "-100px";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
