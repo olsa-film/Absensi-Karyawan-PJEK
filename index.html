@@ -15,7 +15,7 @@
         .app-container { width: 100%; max-width: 450px; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         
         header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; }
-        .clock { font-size: 2.5rem; font-weight: 600; margin: 5px 0; }
+        .clock { font-size: 2.2rem; font-weight: 600; margin: 5px 0; letter-spacing: 1px; }
         
         .content { padding: 25px 20px; flex: 1; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #f0f0f0; }
@@ -24,8 +24,12 @@
         select { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; background: #f9f9f9; font-size: 1rem; outline: none; }
         
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
-        /* EFEK MIRROR (CERMIN) */
-        video, canvas, img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        /* Video di-mirror agar enak ngaca */
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        /* Hasil Foto TIDAK di-mirror lagi (karena datanya sudah kita balik di sistem) */
+        img { width: 100%; height: 100%; object-fit: cover; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; }
@@ -33,10 +37,10 @@
         .btn-in { background: #00b894; }
         .btn-out { background: #d63031; }
         
-        .shutter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1); width: 65px; height: 65px; background: rgba(255,255,255,0.3); border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+        .shutter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 65px; height: 65px; background: rgba(255,255,255,0.3); border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
         .shutter-inner { width: 50px; height: 50px; background: white; border-radius: 50%; }
         
-        #retake-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) scaleX(1); background: white; color: #333; padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; display: none; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #retake-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; color: #333; padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; display: none; z-index: 10; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         
         #notification { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 15px 30px; border-radius: 50px; z-index: 999; transition: top 0.4s; font-size: 0.9rem; width: 85%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
@@ -48,7 +52,7 @@
     <div class="app-container">
         <header>
             <div style="font-size: 1rem; opacity: 0.9;"><i class="fas fa-fingerprint"></i> E-PRESENSI</div>
-            <div class="clock" id="clock">00:00</div>
+            <div class="clock" id="clock">00:00:00</div>
             <div id="date" style="font-size: 0.9rem;">...</div>
         </header>
 
@@ -87,15 +91,21 @@
 
     <script>
         // ==========================================
-        // URL SCRIPT ANDA SUDAH TERPASANG DI SINI:
+        // SCRIPT URL ANDA:
         // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDSf4JnVzqlVA182nwFDE0YI6E-_NZH2OKwUJh6K8xGsP4nWaXIJ6lM65zeFSF_Aw0pw/exec';
 
         
-        // 1. JAM & TANGGAL
+        // 1. JAM & TANGGAL (DENGAN DETIK)
         setInterval(() => {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            // Menampilkan Jam:Menit:Detik
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit', 
+                minute:'2-digit', 
+                second: '2-digit', 
+                hour12: false
+            });
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
@@ -121,11 +131,11 @@
         }
         
         function takePhoto() {
-            canvas.width = 300; // Resolusi kecil biar ringan
+            canvas.width = 300; 
             canvas.height = 300 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
             
-            // Logic Cermin
+            // LOGIKA MIRROR: Kita balik datanya disini
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
             
@@ -133,7 +143,9 @@
             photoData = canvas.toDataURL('image/jpeg', 0.6);
             
             preview.src = photoData;
-            video.style.display = 'none'; preview.style.display = 'block';
+            
+            video.style.display = 'none'; 
+            preview.style.display = 'block';
             document.getElementById('shutter-btn').style.display = 'none';
             document.getElementById('retake-btn').style.display = 'block';
         }
