@@ -37,6 +37,14 @@
         #lokasi { background-color: #e9ecef; color: #495057; cursor: not-allowed; font-size: 0.85rem; }
 
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
+        
+        /* --- PERUBAHAN 1: CSS MIRRORING (LIVE PREVIEW) --- */
+        #video {
+            transform: scaleX(-1);
+            -webkit-transform: scaleX(-1);
+        }
+        /* -------------------------------------------------- */
+
         video, canvas, img { width: 100%; height: 100%; object-fit: cover; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -113,8 +121,6 @@
         // --- KONFIGURASI LOKASI ---
         const KANTOR_LAT = -6.886087;
         const KANTOR_LNG = 111.657690;
-        
-        // --- RADIUS DIUBAH MENJADI 50 METER ---
         const RADIUS_MAX = 50; 
         
         let userLat = 0;
@@ -152,6 +158,13 @@
             canvas.width = 200; 
             canvas.height = 200 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
+
+            // --- PERUBAHAN 2: JS MIRRORING (HASIL FOTO) ---
+            // Membalikkan kanvas sebelum menggambar agar hasil foto sama dengan preview
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            // ----------------------------------------------
+
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             photoData = canvas.toDataURL('image/jpeg', 0.4);
             
@@ -168,9 +181,9 @@
             photoData = "";
         }
 
-        // --- LOKASI & HITUNG JARAK (Haversine Formula) ---
+        // --- LOKASI & HITUNG JARAK ---
         function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-            var R = 6371; // Radius bumi dalam KM
+            var R = 6371; 
             var dLat = deg2rad(lat2 - lat1);
             var dLon = deg2rad(lon2 - lon1);
             var a =
@@ -178,8 +191,8 @@
                 Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            var d = R * c; // Jarak dalam KM
-            return d * 1000; // Ubah ke Meter
+            var d = R * c; 
+            return d * 1000; 
         }
 
         function deg2rad(deg) { return deg * (Math.PI / 180); }
@@ -193,31 +206,24 @@
                     (position) => {
                         userLat = position.coords.latitude;
                         userLng = position.coords.longitude;
-                        
-                        // Hitung Jarak
                         jarakMeter = getDistanceFromLatLonInMeters(KANTOR_LAT, KANTOR_LNG, userLat, userLng);
                         
-                        // Tampilkan Koordinat dan Jarak
                         lokInput.value = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
                         
                         if (jarakMeter > RADIUS_MAX) {
                             jarakInfo.style.display = 'block';
-                            jarakInfo.style.color = '#e74c3c'; // Merah
+                            jarakInfo.style.color = '#e74c3c'; 
                             jarakInfo.innerText = `⚠️ Terlalu Jauh! Jarak: ${Math.round(jarakMeter)}m (Max 50m)`;
                         } else {
                             jarakInfo.style.display = 'block';
-                            jarakInfo.style.color = '#27ae60'; // Hijau
+                            jarakInfo.style.color = '#27ae60'; 
                             jarakInfo.innerText = `✅ Lokasi Valid. Jarak: ${Math.round(jarakMeter)}m`;
                         }
                     },
-                    (error) => {
-                        lokInput.value = "Gagal Deteksi Lokasi (Aktifkan GPS)";
-                    },
-                    { enableHighAccuracy: true } // Paksa GPS akurasi tinggi
+                    (error) => { lokInput.value = "Gagal Deteksi Lokasi (Aktifkan GPS)"; },
+                    { enableHighAccuracy: true }
                 );
-            } else {
-                lokInput.value = "Browser tidak support GPS";
-            }
+            } else { lokInput.value = "Browser tidak support GPS"; }
         }
 
         window.addEventListener('load', () => {
@@ -231,25 +237,18 @@
             const divisi = document.getElementById('divisi').value;
             const lokasi = document.getElementById('lokasi').value;
 
-            // VALIDASI INPUT
             if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
-            
-            // VALIDASI LOKASI
-            if (userLat === 0 || userLng === 0) { 
-                showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); return; 
-            }
+            if (userLat === 0 || userLng === 0) { showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); return; }
             if (jarakMeter > RADIUS_MAX) {
                 showNotif(`GAGAL: Anda ${Math.round(jarakMeter)}m dari kantor!`, "#c0392b");
-                return; // Batalkan pengiriman
+                return; 
             }
 
             let statusFinal = tipe;
-
             if (tipe === 'Masuk') {
                 const now = new Date();
                 const [jamJadwal, menitJadwal] = schedules[divisi].split(':');
-                
                 if (now.getHours() > jamJadwal || (now.getHours() == jamJadwal && now.getMinutes() > menitJadwal)) {
                     statusFinal += " (Terlambat)";
                 } else {
@@ -257,7 +256,6 @@
                 }
             }
 
-            // PROSES PENGIRIMAN
             showNotif("Berhasil Absen: " + statusFinal, "#2ecc71");
             setTimeout(resetCamera, 1500);
 
