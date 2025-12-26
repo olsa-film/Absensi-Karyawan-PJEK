@@ -33,6 +33,9 @@
             margin-bottom: 15px;
         }
         input[type="text"]:focus, select:focus { border-color: var(--primary); background: #fff; }
+        
+        /* Style khusus untuk input lokasi agar terlihat readonly */
+        #lokasi { background-color: #e9ecef; color: #495057; cursor: not-allowed; }
 
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
         
@@ -73,10 +76,13 @@
                 <select id="divisi" onchange="updateJadwal()">
                     <option value="admin">Divisi Admin</option>
                     <option value="digiplain">Divisi Digiplain</option>
-                </select>
-                <div style="margin-top: 5px; font-size: 0.85rem; color: #888; text-align: center;">
+                    <option value="driver">Divisi Driver</option> </select>
+                <div style="margin-top: 5px; margin-bottom: 15px; font-size: 0.85rem; color: #888; text-align: center;">
                     Jadwal Masuk: <b id="info-jadwal">09:00</b>
                 </div>
+
+                <label>Lokasi (GPS)</label>
+                <input type="text" id="lokasi" readonly placeholder="Sedang melacak lokasi...">
             </div>
 
             <div class="card" style="padding: 10px;">
@@ -101,20 +107,29 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfLW9LewSRssZ9cts1oez4hntA7c6MUbVpE0mHmSPu7cTSDNpVEdAiKFD1sSD5bb1C9w/exec';
+        // URL SCRIPT YANG SUDAH DIPERBARUI
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhbUaY21FWI5t6QR-VugKMoJQzTm5tXzWHztgREsAeQnNrJRLEIr7v67O1Yj2ms_aMmQ/exec';
 
+        // JAM DIGITAL
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: false });
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
-        const schedules = { admin: "09:00", digiplain: "09:00" };
+        // JADWAL DIVISI (DRIVER DITAMBAHKAN)
+        const schedules = { 
+            admin: "09:00", 
+            digiplain: "09:00", 
+            driver: "08:00" // Jadwal Driver (bisa diubah)
+        };
+        
         function updateJadwal() {
             const div = document.getElementById('divisi').value;
             document.getElementById('info-jadwal').innerText = schedules[div];
         }
 
+        // --- KAMERA ---
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('photo-preview');
@@ -124,11 +139,11 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
-            } catch(e) { alert("Gagal akses kamera!"); }
+            } catch(e) { alert("Gagal akses kamera! Pastikan izin diberikan."); }
         }
         
         function takePhoto() {
-            // Resolusi 200px (Sangat Ringan)
+            // Resolusi Rendah agar ringan (200px)
             canvas.width = 200; 
             canvas.height = 200 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
@@ -150,15 +165,44 @@
             document.getElementById('retake-btn').style.display = 'none';
             photoData = "";
         }
-        window.addEventListener('load', initCamera);
 
+        // --- LOKASI (GEOLOCATION) ---
+        function getLocation() {
+            const lokInput = document.getElementById('lokasi');
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Format: Latitude, Longitude
+                        lokInput.value = position.coords.latitude + ", " + position.coords.longitude;
+                    },
+                    (error) => {
+                        lokInput.value = "Gagal Deteksi Lokasi (Aktifkan GPS)";
+                    }
+                );
+            } else {
+                lokInput.value = "Browser tidak support GPS";
+            }
+        }
+
+        // Jalankan Kamera & Lokasi saat web dibuka
+        window.addEventListener('load', () => {
+            initCamera();
+            getLocation();
+        });
+
+        // --- KIRIM DATA ---
         function kirimAbsen(tipe) {
             const nama = document.getElementById('nama').value;
+            const divisi = document.getElementById('divisi').value;
+            const lokasi = document.getElementById('lokasi').value; // Ambil data lokasi
 
             if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
+            if (!lokasi || lokasi.includes("Gagal") || lokasi.includes("Sedang")) { 
+                showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); 
+                // Opsional: return; (kalau mau maksa harus ada lokasi, uncomment return ini)
+            }
 
-            const divisi = document.getElementById('divisi').value;
             let statusFinal = tipe;
 
             if (tipe === 'Masuk') {
@@ -171,30 +215,25 @@
                 }
             }
 
-            // --- PERUBAHAN DI SINI: INSTANT FEEDBACK ---
-            // 1. Tampilkan Sukses DULUAN (Supaya user senang & cepat)
+            // 1. Tampilkan Sukses DULUAN (Instant Feedback)
             showNotif("Berhasil: " + statusFinal, "#2ecc71");
             
-            // 2. Reset kamera setelah 1.5 detik (supaya user sempat baca notif)
+            // 2. Reset kamera 
             setTimeout(resetCamera, 1500);
 
-            // 3. Baru kirim data di belakang layar (User tidak perlu menunggu ini selesai)
+            // 3. Kirim data ke Google Sheet
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
                     nama: nama, 
                     divisi: divisi, 
                     status: statusFinal, 
+                    lokasi: lokasi, // Kirim Lokasi ke Script
                     foto: photoData 
                 })
             })
-            .then(res => {
-                console.log("Data terkirim ke server"); // Diam-diam saja
-            })
-            .catch(err => {
-                // Kalau gagal, baru kasih tau belakangan (jarang terjadi)
-                showNotif("Gagal koneksi internet!", "#e74c3c");
-            });
+            .then(res => console.log("Data terkirim ke server"))
+            .catch(err => showNotif("Gagal koneksi internet!", "#e74c3c"));
         }
 
         function showNotif(msg, color) {
