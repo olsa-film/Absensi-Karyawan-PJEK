@@ -76,7 +76,8 @@
                 <select id="divisi" onchange="updateJadwal()">
                     <option value="admin">Divisi Admin</option>
                     <option value="digiplain">Divisi Digiplain</option>
-                    <option value="driver">Divisi Driver</option> </select>
+                    <option value="driver">Divisi Driver</option>
+                </select>
                 <div style="margin-top: 5px; margin-bottom: 15px; font-size: 0.85rem; color: #888; text-align: center;">
                     Jadwal Masuk: <b id="info-jadwal">09:00</b>
                 </div>
@@ -107,7 +108,7 @@
     </div>
 
     <script>
-        // URL SCRIPT YANG SUDAH DIPERBARUI
+        // URL SCRIPT GOOGLE SHEET
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhbUaY21FWI5t6QR-VugKMoJQzTm5tXzWHztgREsAeQnNrJRLEIr7v67O1Yj2ms_aMmQ/exec';
 
         // JAM DIGITAL
@@ -117,11 +118,11 @@
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
-        // JADWAL DIVISI (DRIVER DITAMBAHKAN)
+        // --- UPDATE JADWAL DI SINI ---
         const schedules = { 
             admin: "09:00", 
             digiplain: "09:00", 
-            driver: "08:00" // Jadwal Driver (bisa diubah)
+            driver: "07:00" // SUDAH DIUBAH KE JAM 07.00
         };
         
         function updateJadwal() {
@@ -143,14 +144,10 @@
         }
         
         function takePhoto() {
-            // Resolusi Rendah agar ringan (200px)
             canvas.width = 200; 
             canvas.height = 200 * (video.videoHeight / video.videoWidth);
             const ctx = canvas.getContext('2d');
-            
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Kompresi 0.4
             photoData = canvas.toDataURL('image/jpeg', 0.4);
             
             preview.src = photoData;
@@ -172,7 +169,6 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        // Format: Latitude, Longitude
                         lokInput.value = position.coords.latitude + ", " + position.coords.longitude;
                     },
                     (error) => {
@@ -184,7 +180,6 @@
             }
         }
 
-        // Jalankan Kamera & Lokasi saat web dibuka
         window.addEventListener('load', () => {
             initCamera();
             getLocation();
@@ -194,13 +189,12 @@
         function kirimAbsen(tipe) {
             const nama = document.getElementById('nama').value;
             const divisi = document.getElementById('divisi').value;
-            const lokasi = document.getElementById('lokasi').value; // Ambil data lokasi
+            const lokasi = document.getElementById('lokasi').value;
 
             if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
             if (!lokasi || lokasi.includes("Gagal") || lokasi.includes("Sedang")) { 
                 showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); 
-                // Opsional: return; (kalau mau maksa harus ada lokasi, uncomment return ini)
             }
 
             let statusFinal = tipe;
@@ -208,6 +202,8 @@
             if (tipe === 'Masuk') {
                 const now = new Date();
                 const [jamJadwal, menitJadwal] = schedules[divisi].split(':');
+                
+                // Logika Cek Terlambat
                 if (now.getHours() > jamJadwal || (now.getHours() == jamJadwal && now.getMinutes() > menitJadwal)) {
                     statusFinal += " (Terlambat)";
                 } else {
@@ -215,20 +211,16 @@
                 }
             }
 
-            // 1. Tampilkan Sukses DULUAN (Instant Feedback)
             showNotif("Berhasil: " + statusFinal, "#2ecc71");
-            
-            // 2. Reset kamera 
             setTimeout(resetCamera, 1500);
 
-            // 3. Kirim data ke Google Sheet
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
                     nama: nama, 
                     divisi: divisi, 
                     status: statusFinal, 
-                    lokasi: lokasi, // Kirim Lokasi ke Script
+                    lokasi: lokasi,
                     foto: photoData 
                 })
             })
