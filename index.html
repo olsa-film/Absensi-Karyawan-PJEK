@@ -110,10 +110,12 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhbUaY21FWI5t6QR-VugKMoJQzTm5tXzWHztgREsAeQnNrJRLEIr7v67O1Yj2ms_aMmQ/exec';
 
-        // --- KONFIGURASI LOKASI KANTOR (PEMBARUAN DI SINI) ---
+        // --- KONFIGURASI LOKASI ---
         const KANTOR_LAT = -6.886087;
         const KANTOR_LNG = 111.657690;
-        const RADIUS_MAX = 20; // Batas 20 Meter
+        
+        // --- RADIUS DIUBAH MENJADI 50 METER ---
+        const RADIUS_MAX = 50; 
         
         let userLat = 0;
         let userLng = 0;
@@ -201,7 +203,7 @@
                         if (jarakMeter > RADIUS_MAX) {
                             jarakInfo.style.display = 'block';
                             jarakInfo.style.color = '#e74c3c'; // Merah
-                            jarakInfo.innerText = `⚠️ Terlalu Jauh! Jarak: ${Math.round(jarakMeter)}m (Max 20m)`;
+                            jarakInfo.innerText = `⚠️ Terlalu Jauh! Jarak: ${Math.round(jarakMeter)}m (Max 50m)`;
                         } else {
                             jarakInfo.style.display = 'block';
                             jarakInfo.style.color = '#27ae60'; // Hijau
