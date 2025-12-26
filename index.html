@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Absensi Karyawan</title>
+    <title>Absensi Karyawan + Lokasi</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -34,12 +34,9 @@
         }
         input[type="text"]:focus, select:focus { border-color: var(--primary); background: #fff; }
         
-        /* Style khusus untuk input lokasi agar terlihat readonly */
-        #lokasi { background-color: #e9ecef; color: #495057; cursor: not-allowed; }
+        #lokasi { background-color: #e9ecef; color: #495057; cursor: not-allowed; font-size: 0.85rem; }
 
         .camera-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; height: 350px; margin-bottom: 10px; }
-        
-        /* NO MIRROR */
         video, canvas, img { width: 100%; height: 100%; object-fit: cover; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -82,8 +79,11 @@
                     Jadwal Masuk: <b id="info-jadwal">09:00</b>
                 </div>
 
-                <label>Lokasi (GPS)</label>
-                <input type="text" id="lokasi" readonly placeholder="Sedang melacak lokasi...">
+                <label>Lokasi (Wajib di Kantor)</label>
+                <input type="text" id="lokasi" readonly placeholder="Mencari titik lokasi...">
+                <div id="jarak-info" style="font-size: 0.8rem; text-align: center; margin-top: -10px; margin-bottom: 10px; color: #e74c3c; display: none;">
+                    Anda di luar jangkauan!
+                </div>
             </div>
 
             <div class="card" style="padding: 10px;">
@@ -97,7 +97,7 @@
                     </div>
                     <div id="retake-btn" onclick="resetCamera()">FOTO ULANG</div>
                 </div>
-                <p style="text-align: center; font-size: 0.8rem; color: #aaa;">Pastikan wajah terlihat jelas</p>
+                <p style="text-align: center; font-size: 0.8rem; color: #aaa;">Wajah harus terlihat jelas</p>
             </div>
 
             <div class="btn-grid">
@@ -108,8 +108,16 @@
     </div>
 
     <script>
-        // URL SCRIPT GOOGLE SHEET
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhbUaY21FWI5t6QR-VugKMoJQzTm5tXzWHztgREsAeQnNrJRLEIr7v67O1Yj2ms_aMmQ/exec';
+
+        // --- KONFIGURASI LOKASI KANTOR ---
+        const KANTOR_LAT = -6.8750559;
+        const KANTOR_LNG = 111.6437919;
+        const RADIUS_MAX = 20; // Batas radius dalam meter
+        
+        let userLat = 0;
+        let userLng = 0;
+        let jarakMeter = 0;
 
         // JAM DIGITAL
         setInterval(() => {
@@ -118,12 +126,7 @@
             document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
         }, 1000);
 
-        // --- UPDATE JADWAL DI SINI ---
-        const schedules = { 
-            admin: "09:00", 
-            digiplain: "09:00", 
-            driver: "07:00" // SUDAH DIUBAH KE JAM 07.00
-        };
+        const schedules = { admin: "09:00", digiplain: "09:00", driver: "07:00" };
         
         function updateJadwal() {
             const div = document.getElementById('divisi').value;
@@ -140,7 +143,7 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
-            } catch(e) { alert("Gagal akses kamera! Pastikan izin diberikan."); }
+            } catch(e) { alert("Izinkan akses kamera!"); }
         }
         
         function takePhoto() {
@@ -163,17 +166,52 @@
             photoData = "";
         }
 
-        // --- LOKASI (GEOLOCATION) ---
+        // --- LOKASI & HITUNG JARAK (Haversine Formula) ---
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            var R = 6371; // Radius bumi dalam KM
+            var dLat = deg2rad(lat2 - lat1);
+            var dLon = deg2rad(lon2 - lon1);
+            var a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c; // Jarak dalam KM
+            return d * 1000; // Ubah ke Meter
+        }
+
+        function deg2rad(deg) { return deg * (Math.PI / 180); }
+
         function getLocation() {
             const lokInput = document.getElementById('lokasi');
+            const jarakInfo = document.getElementById('jarak-info');
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
+                navigator.geolocation.watchPosition(
                     (position) => {
-                        lokInput.value = position.coords.latitude + ", " + position.coords.longitude;
+                        userLat = position.coords.latitude;
+                        userLng = position.coords.longitude;
+                        
+                        // Hitung Jarak
+                        jarakMeter = getDistanceFromLatLonInMeters(KANTOR_LAT, KANTOR_LNG, userLat, userLng);
+                        
+                        // Tampilkan Koordinat dan Jarak
+                        lokInput.value = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+                        
+                        if (jarakMeter > RADIUS_MAX) {
+                            jarakInfo.style.display = 'block';
+                            jarakInfo.style.color = '#e74c3c'; // Merah
+                            jarakInfo.innerText = `⚠️ Terlalu Jauh! Jarak: ${Math.round(jarakMeter)}m (Max 20m)`;
+                        } else {
+                            jarakInfo.style.display = 'block';
+                            jarakInfo.style.color = '#27ae60'; // Hijau
+                            jarakInfo.innerText = `✅ Lokasi Valid. Jarak: ${Math.round(jarakMeter)}m`;
+                        }
                     },
                     (error) => {
                         lokInput.value = "Gagal Deteksi Lokasi (Aktifkan GPS)";
-                    }
+                    },
+                    { enableHighAccuracy: true } // Paksa GPS akurasi tinggi
                 );
             } else {
                 lokInput.value = "Browser tidak support GPS";
@@ -191,10 +229,17 @@
             const divisi = document.getElementById('divisi').value;
             const lokasi = document.getElementById('lokasi').value;
 
+            // VALIDASI INPUT
             if (!nama) { showNotif("Isi Nama Lengkap Dulu!", "#e74c3c"); return; }
             if (!photoData) { showNotif("Ambil foto dulu!", "#e74c3c"); return; }
-            if (!lokasi || lokasi.includes("Gagal") || lokasi.includes("Sedang")) { 
-                showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); 
+            
+            // VALIDASI LOKASI
+            if (userLat === 0 || userLng === 0) { 
+                showNotif("Tunggu lokasi terdeteksi!", "#f39c12"); return; 
+            }
+            if (jarakMeter > RADIUS_MAX) {
+                showNotif(`GAGAL: Anda ${Math.round(jarakMeter)}m dari kantor!`, "#c0392b");
+                return; // Batalkan pengiriman
             }
 
             let statusFinal = tipe;
@@ -203,7 +248,6 @@
                 const now = new Date();
                 const [jamJadwal, menitJadwal] = schedules[divisi].split(':');
                 
-                // Logika Cek Terlambat
                 if (now.getHours() > jamJadwal || (now.getHours() == jamJadwal && now.getMinutes() > menitJadwal)) {
                     statusFinal += " (Terlambat)";
                 } else {
@@ -211,7 +255,8 @@
                 }
             }
 
-            showNotif("Berhasil: " + statusFinal, "#2ecc71");
+            // PROSES PENGIRIMAN
+            showNotif("Berhasil Absen: " + statusFinal, "#2ecc71");
             setTimeout(resetCamera, 1500);
 
             fetch(SCRIPT_URL, {
@@ -220,11 +265,11 @@
                     nama: nama, 
                     divisi: divisi, 
                     status: statusFinal, 
-                    lokasi: lokasi,
+                    lokasi: lokasi + ` (Jarak: ${Math.round(jarakMeter)}m)`,
                     foto: photoData 
                 })
             })
-            .then(res => console.log("Data terkirim ke server"))
+            .then(res => console.log("Data terkirim"))
             .catch(err => showNotif("Gagal koneksi internet!", "#e74c3c"));
         }
 
